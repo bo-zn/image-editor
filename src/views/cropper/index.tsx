@@ -1,6 +1,5 @@
 
 
-import { defineComponent } from 'vue';
 import 'cropperjs';
 
 export default defineComponent({

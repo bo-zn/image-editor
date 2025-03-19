@@ -1,11 +1,12 @@
 import { createApp } from 'vue';
-import './style.css'
-import App from './App'; // 确保路径以 .tsx 结尾
+import App from './App';
+import router from './router';
+// 引入 Element Plus
 import ElementPlus from 'element-plus';
-import 'element-plus/dist/index.css';
+import 'element-plus/dist/index.css'; // 引入 Element Plus 样式
+import './style.css'
 
 const app = createApp(App);
-app.use(ElementPlus);
-app.mount('#app')
-
-// 启用“allowImportingTsExtensions”时，导入路径只能以“.tsx”扩展名结尾。
+app.use(router);
+app.use(ElementPlus); // 使用 Element Plus
+app.mount('#app');
