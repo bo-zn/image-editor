@@ -168,7 +168,7 @@ export default defineComponent({
         fabricCanvas.value.remove(cropZone);
         cropZone = null;
         fabricCanvas.value.renderAll();
-    
+
         // 初始化 cropZoneProperties
         resetCropZoneProperties(); // 使用重置函数
       }
@@ -247,8 +247,8 @@ export default defineComponent({
     };
 
     return () => (
-      <el-main class="h-full flex items-center justify-center gap-4">
-        <div style="width: 300px;">
+      <el-main class="h-full flex items-center justify-center gap-20">
+        <div class="w-[300px]">
           <div class="mb-2">
             <el-button type="primary" onClick={showCropZone}>剪裁</el-button>
             <el-button type="info" onClick={hideCropZone}>取消</el-button>
@@ -291,7 +291,7 @@ export default defineComponent({
             <el-slider v-model={sliderValues.shadows} min={-100} max={100} />
           </div>
         </div>
-        <div>
+        <div style="border: 1px dashed #409eff" class="w-[800px] h-[700px] rounded-lg flex items-center justify-center">
           <canvas ref={canvasRef} width="800" height="600"></canvas>
         </div>
       </el-main>
