@@ -108,13 +108,13 @@ export default defineComponent({
           cornerSize: 10,
           cornerStyle: 'circle',
         }, imgInstanceRef.value); // 传入图片实例
-    
+
         // 重置缩放状态
         cropZone.set({
           scaleX: 1,
           scaleY: 1,
         });
-    
+
         fabricCanvas.value.add(markRaw(cropZone));
         fabricCanvas.value.setActiveObject(cropZone); // 设置为选中状态
         fabricCanvas.value.renderAll();
@@ -133,7 +133,6 @@ export default defineComponent({
         fabricCanvas.value.remove(cropZone);
         cropZone = null;
         fabricCanvas.value.renderAll();
-
         // 初始化 cropZoneProperties
         resetCropZoneProperties(); // 使用重置函数
       }
@@ -186,18 +185,49 @@ export default defineComponent({
     watch(() => sliderValues.highlights, (newValue) => applyFilter('Highlights', newValue, 5));
     watch(() => sliderValues.shadows, (newValue) => applyFilter('Shadows', newValue, 6));
 
-
-
-    // 在模板中添加新的滑块
     const downloadImage = () => {
       if (fabricCanvas.value) {
-        const dataURL = fabricCanvas.value.toDataURL();
-        const link = document.createElement('a');
-        link.href = dataURL;
-        link.download = 'edited-image.png';
-        link.click();
+        let tempCanvas = document.createElement('canvas');
+        let tempCtx = tempCanvas.getContext('2d');
+        if (cropZone) {
+          tempCanvas.width = cropZone.width;
+          tempCanvas.height = cropZone.height;
+          const { left, top, width, height } = cropZone
+          if (tempCtx && imgInstanceRef.value) {
+            hideCropZone()
+            setTimeout(() => {
+              const imgData = fabricCanvas.value.contextContainer.getImageData(
+                left, top, width, height
+              );
+              tempCtx.putImageData(imgData, 0, 0);
+              const dataURL = tempCanvas.toDataURL();
+              const link = document.createElement('a');
+              link.href = dataURL;
+              link.download = cropZone ? 'cropped-image.png' : 'full-image.png';
+              link.click();
+            }, 1000);
+
+          }
+        } else {
+          tempCanvas.width = fabricCanvas.value.width;
+          tempCanvas.height = fabricCanvas.value.height;
+          if (tempCtx && imgInstanceRef.value) {
+            const imgData = fabricCanvas.value.contextContainer.getImageData(
+              0,
+              0,
+              fabricCanvas.value.width,
+              fabricCanvas.value.height
+            );
+            tempCtx.putImageData(imgData, 0, 0);
+            const dataURL = tempCanvas.toDataURL();
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = cropZone ? 'cropped-image.png' : 'full-image.png';
+            link.click();
+          }
+        }
       }
-    };
+    }
 
     const resetAllProperties = () => {
       sliderValues.brightness = 0;
