@@ -1,5 +1,4 @@
 import * as fabric from 'fabric';
-import { clamp } from './utils';
 
 export class CropZone extends fabric.Rect {
     private imgInstance: fabric.Image | null = null;
@@ -14,17 +13,27 @@ export class CropZone extends fabric.Rect {
         this.on({
             moving: this._onMoving.bind(this),
             scaling: this._onScaling.bind(this),
-        });;
+        });
     }
 
     _onMoving(): void {
         if (this.imgInstance) {
             const imgBounds = this.imgInstance.getBoundingRect();
             const { height, width, left, top } = this;
-            const maxLeft = imgBounds.left + imgBounds.width - width;
-            const maxTop = imgBounds.top + imgBounds.height - height;
-            this.left = clamp(left, imgBounds.left, maxLeft);
-            this.top = clamp(top, imgBounds.top, maxTop);
+            const maxX = this.canvas.width - imgBounds.left - width;
+            const maxY = this.canvas.height - imgBounds.top - height;
+
+            if (left < imgBounds.left)
+                this.left = imgBounds.left
+            if (top < imgBounds.top)
+                this.top = imgBounds.top
+            if (left > maxX)
+                this.left = maxX
+            if (top > maxY)
+                this.top = maxY
+
+            this.dispatchEvent('crop:update');
+
         }
     }
 
@@ -33,58 +42,106 @@ export class CropZone extends fabric.Rect {
             const imgBounds = this.imgInstance.getBoundingRect();
             const minX = this.left;
             const minY = this.top;
-            const maxX = this.left + this.width * this.scaleX;
-            const maxY = this.top + this.height * this.scaleY;
-            let preventScaling = false;
-    
-            // 检查是否超出边界
-            if (minX < imgBounds.left || maxX > imgBounds.left + imgBounds.width || minY < imgBounds.top || maxY > imgBounds.top + imgBounds.height) {
-                preventScaling = true;
-            }
-    
-            if (preventScaling) {
-                // 恢复到上一次的缩放比例
-                this.scaleX = this.lastScaleX || 1;
-                this.scaleY = this.lastScaleY || 1;
-            } else {
-                // 更新上一次的缩放比例
-                this.lastScaleX = this.scaleX;
-                this.lastScaleY = this.scaleY;
-            }
-    
+            const maxX = this.left + this.width;
+            const maxY = this.top + this.height;
+
             const pointer = this.canvas.getPointer(fEvent.e);
             const x = pointer.x;
-            const y = pointer.y;
-    
-            // 更新裁剪区域，确保宽高与选中区域一致
-            this._updateCropZone(
-                Math.min(this.left, x),
-                Math.min(this.top, y),
-                Math.max(this.left + this.width * this.scaleX, x),
-                Math.max(this.top + this.height * this.scaleY, y)
-            );
+            const y = pointer.y
+
+            if (minX < imgBounds.left || maxX > imgBounds.left + imgBounds.width) {
+                this.scaleX = this.lastScaleX || 1
+            }
+
+            if (minX < imgBounds.left) {
+                this.left = imgBounds.left
+            }
+
+            if (minY < imgBounds.top || maxY > imgBounds.top + imgBounds.height) {
+                this.scaleY = this.lastScaleY || 1
+            }
+
+            if (minY < imgBounds.top) {
+                this.top = imgBounds.top
+            }
+
+            this.lastScaleX = this.scaleX;
+            this.lastScaleY = this.scaleY;
+
+            // this._updateCropZone(
+            //     Math.min(this.left, x),
+            //     Math.min(this.top, y),
+            //     Math.max(this.left + this.width, x),
+            //     Math.max(this.top + this.height, y)
+            // );
         }
     }
+
     _updateCropZone(fromX: number, fromY: number, toX: number, toY: number): void {
         if (this.imgInstance) {
             const imgBounds = this.imgInstance.getBoundingRect();
-    
-            // 确保裁剪区域不会超出图像边界
-            const leftX = clamp(Math.min(fromX, toX), imgBounds.left, imgBounds.left + imgBounds.width);
-            const rightX = clamp(Math.max(fromX, toX), imgBounds.left, imgBounds.left + imgBounds.width);
-            const topY = clamp(Math.min(fromY, toY), imgBounds.top, imgBounds.top + imgBounds.height);
-            const bottomY = clamp(Math.max(fromY, toY), imgBounds.top, imgBounds.top + imgBounds.height);
-    
-            const width = rightX - leftX;
-            const height = bottomY - topY;
-    
+
+            // 判断拖动方向
+            const isRight = (toX > fromX);
+            const isLeft = !isRight;
+            const isDown = (toY > fromY);
+            const isUp = !isDown;
+
+            let leftX = Math.min(fromX, toX);
+            let rightX = Math.max(fromX, toX);
+            let topY = Math.min(fromY, toY);
+            let bottomY = Math.max(fromY, toY);
+
+
+            leftX = Math.max(imgBounds.left, leftX);
+            rightX = Math.min(imgBounds.width + imgBounds.left, rightX);
+            topY = Math.max(imgBounds.top, topY)
+            bottomY = Math.min(imgBounds.height + imgBounds.top, bottomY);
+
+
+            if (rightX - leftX < this.width) {
+                if (isRight)
+                    rightX = leftX + this.width;
+                else
+                    leftX = rightX - this.width;
+            }
+            if (bottomY - topY < this.height) {
+                if (isDown)
+                    bottomY = topY + this.height;
+                else
+                    topY = bottomY - this.height;
+            }
+            if (leftX < imgBounds.left) {
+                rightX += Math.abs(leftX);
+                leftX = imgBounds.left
+            }
+
+            if (rightX > imgBounds.width + imgBounds.left) {
+                // Translate to the right
+                leftX -= (rightX - (imgBounds.width + imgBounds.left));
+                rightX = imgBounds.width + imgBounds.left;
+            }
+
+            if (topY < imgBounds.top) {
+
+                bottomY += Math.abs(topY);
+                topY = imgBounds.top
+            }
+
+            if (bottomY > imgBounds.height + imgBounds.top) {
+
+                topY -= (bottomY - (imgBounds.height + imgBounds.top));
+                bottomY = imgBounds.height + imgBounds.top;
+            }
+
+            // 更新裁剪区域的位置和尺寸
             this.set({
                 left: leftX,
                 top: topY,
-                width: width,
-                height: height
+                width: rightX - leftX,
+                height: bottomY - topY
             });
-    
+
             this.dispatchEvent('crop:update');
         }
     }
@@ -92,9 +149,7 @@ export class CropZone extends fabric.Rect {
     dispatchEvent(eventName: string): void {
         const event = new Event(eventName, { bubbles: true, cancelable: true });
         this.canvas?.getElement().dispatchEvent(event);
-        this.canvas?.requestRenderAll();
     }
-
 
     _render(ctx: CanvasRenderingContext2D): void {
         super._render(ctx);
