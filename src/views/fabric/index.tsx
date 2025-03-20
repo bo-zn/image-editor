@@ -20,8 +20,6 @@ export default defineComponent({
     const cropZoneProperties = reactive({
       width: 200,
       height: 200,
-      left: 0,
-      top: 0,
     });
 
     const sliderValues = reactive({
@@ -109,10 +107,8 @@ export default defineComponent({
           cornerStyle: 'circle',
         }, imgInstanceRef.value); // 传入图片实例
 
-        // 重置缩放状态
-        cropZone.set({
-          scaleX: 1,
-          scaleY: 1,
+        cropZone.setControlsVisibility({
+          mtr: false,
         });
 
         fabricCanvas.value.add(markRaw(cropZone));
@@ -124,8 +120,6 @@ export default defineComponent({
     const resetCropZoneProperties = () => {
       cropZoneProperties.width = 200;
       cropZoneProperties.height = 200;
-      cropZoneProperties.left = 0;
-      cropZoneProperties.top = 0;
     };
 
     const hideCropZone = () => {
@@ -133,8 +127,7 @@ export default defineComponent({
         fabricCanvas.value.remove(cropZone);
         cropZone = null;
         fabricCanvas.value.renderAll();
-        // 初始化 cropZoneProperties
-        resetCropZoneProperties(); // 使用重置函数
+        resetCropZoneProperties();
       }
     };
 
