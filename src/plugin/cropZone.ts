@@ -28,7 +28,7 @@ export class CropZone extends fabric.Rect {
         }
     }
 
-    _onScaling(): void {
+    _onScaling(fEvent: { e: MouseEvent }): void {
         if (this.imgInstance) {
             const imgBounds = this.imgInstance.getBoundingRect();
             const minX = this.left;
@@ -36,12 +36,12 @@ export class CropZone extends fabric.Rect {
             const maxX = this.left + this.width * this.scaleX;
             const maxY = this.top + this.height * this.scaleY;
             let preventScaling = false;
-
+    
             // 检查是否超出边界
             if (minX < imgBounds.left || maxX > imgBounds.left + imgBounds.width || minY < imgBounds.top || maxY > imgBounds.top + imgBounds.height) {
                 preventScaling = true;
             }
-
+    
             if (preventScaling) {
                 // 恢复到上一次的缩放比例
                 this.scaleX = this.lastScaleX || 1;
@@ -51,10 +51,40 @@ export class CropZone extends fabric.Rect {
                 this.lastScaleX = this.scaleX;
                 this.lastScaleY = this.scaleY;
             }
-
-            this.left = clamp(minX, imgBounds.left, imgBounds.left + imgBounds.width - this.width * this.scaleX);
-            this.top = clamp(minY, imgBounds.top, imgBounds.top + imgBounds.height - this.height * this.scaleY);
-
+    
+            const pointer = this.canvas.getPointer(fEvent.e);
+            const x = pointer.x;
+            const y = pointer.y;
+    
+            // 更新裁剪区域，确保宽高与选中区域一致
+            this._updateCropZone(
+                Math.min(this.left, x),
+                Math.min(this.top, y),
+                Math.max(this.left + this.width * this.scaleX, x),
+                Math.max(this.top + this.height * this.scaleY, y)
+            );
+        }
+    }
+    _updateCropZone(fromX: number, fromY: number, toX: number, toY: number): void {
+        if (this.imgInstance) {
+            const imgBounds = this.imgInstance.getBoundingRect();
+    
+            // 确保裁剪区域不会超出图像边界
+            const leftX = clamp(Math.min(fromX, toX), imgBounds.left, imgBounds.left + imgBounds.width);
+            const rightX = clamp(Math.max(fromX, toX), imgBounds.left, imgBounds.left + imgBounds.width);
+            const topY = clamp(Math.min(fromY, toY), imgBounds.top, imgBounds.top + imgBounds.height);
+            const bottomY = clamp(Math.max(fromY, toY), imgBounds.top, imgBounds.top + imgBounds.height);
+    
+            const width = rightX - leftX;
+            const height = bottomY - topY;
+    
+            this.set({
+                left: leftX,
+                top: topY,
+                width: width,
+                height: height
+            });
+    
             this.dispatchEvent('crop:update');
         }
     }
@@ -62,12 +92,12 @@ export class CropZone extends fabric.Rect {
     dispatchEvent(eventName: string): void {
         const event = new Event(eventName, { bubbles: true, cancelable: true });
         this.canvas?.getElement().dispatchEvent(event);
+        this.canvas?.requestRenderAll();
     }
 
 
     _render(ctx: CanvasRenderingContext2D): void {
         super._render(ctx);
-        const canvas = ctx.canvas;
         const dashWidth = 7;
         const flipX = this.flipX ? -1 : 1;
         const flipY = this.flipY ? -1 : 1;
@@ -77,7 +107,6 @@ export class CropZone extends fabric.Rect {
         ctx.scale(scaleX, scaleY);
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
-        // this._renderOverlay(ctx);
 
         if (ctx.setLineDash !== undefined)
             ctx.setLineDash([dashWidth, dashWidth]);
