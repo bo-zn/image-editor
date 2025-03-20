@@ -1,5 +1,5 @@
 import * as fabric from "fabric";
-import { CropZone } from "../../plugin/cropZone"; // 导入封装的 CropZone
+import { CropZone } from '../../plugin/cropZone'; // 导入封装的 CropZone
 
 export default defineComponent({
   setup() {
@@ -7,6 +7,7 @@ export default defineComponent({
     const fabricCanvas = ref<fabric.Canvas | null>(null);
     let cropZone: CropZone | null = null;
     const imgInstanceRef = ref<fabric.Image | null>(null); // 存储 imgInstance
+    const uploadedImageSrc = ref<string | null>(null); // 存储上传的图片路径
 
     // 全局存储图片和 CropZone 的属性
     const imageProperties = reactive({
@@ -33,11 +34,25 @@ export default defineComponent({
       shadows: 0     // 阴影
     });
 
-    const initializeCanvas = () => {
+    onMounted(() => {
+      initializeCanvas('/src/assets/test.jpg');
+    });
+
+    const initializeCanvas = (imageSrc: string) => {
       if (canvasRef.value) {
+        // 销毁现有的 CropZone 实例
+        if (cropZone) {
+          fabricCanvas.value?.remove(cropZone);
+          cropZone.dispose(); // 销毁 CropZone 实例
+          cropZone = null;
+        }
+        // 销毁现有的 fabric.Canvas 实例
+        if (fabricCanvas.value) {
+          fabricCanvas.value.dispose();
+        }
         fabricCanvas.value = new fabric.Canvas(canvasRef.value);
         const imgElement = new Image();
-        imgElement.src = "/src/assets/test.jpg";
+        imgElement.src = imageSrc;
         imgElement.onload = () => {
           const scale = Math.min(
             canvasRef.value!.width / imgElement.width,
@@ -61,74 +76,24 @@ export default defineComponent({
           imageProperties.height = imgElement.height * scale;
           imageProperties.left = imgInstance.left;
           imageProperties.top = imgInstance.top;
-
           fabricCanvas.value?.add(imgInstance);
           fabricCanvas.value?.renderAll();
-
-          setupCropZoneListeners(imgInstance);
         };
       }
     };
 
-    const setupCropZoneListeners = (imgInstance: fabric.FabricImage) => {
-      fabricCanvas.value?.on("object:moving", handleObjectMoving(imgInstance));
-      fabricCanvas.value?.on("object:scaling", handleObjectScaling(imgInstance));
+    const handleImageUpload = (file: File) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        uploadedImageSrc.value = e.target?.result as string;
+        initializeCanvas(uploadedImageSrc.value);
+      };
+      reader.readAsDataURL(file);
     };
 
-    const handleObjectMoving = (imgInstance: fabric.FabricImage) => (e: fabric.TEvent) => {
-      const obj = (e as any).target as fabric.Object; // 使用类型断言
-      if (obj === cropZone) {
-        const imgBounds = imgInstance.getBoundingRect();
-        const objBounds = obj.getBoundingRect();
-
-        // 更新 CropZone 属性
-        cropZoneProperties.left = obj.left;
-        cropZoneProperties.top = obj.top;
-
-        // 确保 CropZone 不超出边界
-        if (objBounds.left < imgBounds.left) {
-          obj.left = imgBounds.left;
-        }
-        if (objBounds.top < imgBounds.top) {
-          obj.top = imgBounds.top;
-        }
-        if (objBounds.left + objBounds.width > imgBounds.left + imgBounds.width) {
-          obj.left = imgBounds.left + imgBounds.width - objBounds.width;
-        }
-        if (objBounds.top + objBounds.height > imgBounds.top + imgBounds.height) {
-          obj.top = imgBounds.top + imgBounds.height - objBounds.height;
-        }
-      }
-    };
-
-    const handleObjectScaling = (imgInstance: fabric.FabricImage) => (e: fabric.TEvent) => {
-      const obj = (e as any).target as fabric.Object; // 使用类型断言
-      if (obj === cropZone) {
-        const imgBounds = imgInstance.getBoundingRect();
-        const scaleX = obj.scaleX || 1;
-        const scaleY = obj.scaleY || 1;
-        obj.set({
-          scaleX: Math.min(
-            scaleX,
-            (imgBounds.left + imgBounds.width - obj.left) / obj.width
-          ),
-          scaleY: Math.min(
-            scaleY,
-            (imgBounds.top + imgBounds.height - obj.top) / obj.height
-          ),
-        });
-
-        // 更新 CropZone 属性
-        cropZoneProperties.width = obj.width * obj.scaleX;
-        cropZoneProperties.height = obj.height * obj.scaleY;
-
-        // 调用 updateGridSize 方法更新网格大小
-        cropZone.updateGridSize(cropZoneProperties.width, cropZoneProperties.height);
-      }
-    };
 
     const showCropZone = () => {
-      if (fabricCanvas.value && !cropZone) {
+      if (fabricCanvas.value && imgInstanceRef.value instanceof fabric.Image) { // 确保 imgInstanceRef.value 是 fabric.Image 类型
         cropZone = new CropZone({
           left: imageProperties.left + (imageProperties.width - cropZoneProperties.width) / 2,
           top: imageProperties.top + (imageProperties.height - cropZoneProperties.height) / 2,
@@ -142,14 +107,14 @@ export default defineComponent({
           lockScalingY: false,
           cornerSize: 10,
           cornerStyle: 'circle',
-        });
-
+        }, imgInstanceRef.value); // 传入图片实例
+    
         // 重置缩放状态
         cropZone.set({
           scaleX: 1,
           scaleY: 1,
         });
-
+    
         fabricCanvas.value.add(markRaw(cropZone));
         fabricCanvas.value.setActiveObject(cropZone); // 设置为选中状态
         fabricCanvas.value.renderAll();
@@ -173,8 +138,6 @@ export default defineComponent({
         resetCropZoneProperties(); // 使用重置函数
       }
     };
-
-    onMounted(initializeCanvas);
 
     // 假设 fabric.js 支持这些滤镜，或者你已经实现了自定义滤镜
     const applyFilter = (filterType: string, value: number, index: number) => {
@@ -249,11 +212,21 @@ export default defineComponent({
     return () => (
       <el-main class="h-full flex items-center justify-center gap-20">
         <div class="w-[300px]">
-          <div class="mb-2">
-            <el-button type="primary" onClick={showCropZone}>剪裁</el-button>
-            <el-button type="info" onClick={hideCropZone}>取消</el-button>
-            <el-button type="warning" onClick={downloadImage}>下载</el-button>
-            <el-button type="success" onClick={resetAllProperties}>重置</el-button>
+          <el-button type="primary" onClick={showCropZone}>剪裁</el-button>
+          <el-button type="info" onClick={hideCropZone}>取消</el-button>
+          <el-button type="warning" onClick={downloadImage}>下载</el-button>
+          <el-button type="success" onClick={resetAllProperties}>重置</el-button>
+          <div class="mt-4 mb-4">
+            <el-upload
+              accept="image/*"
+              show-file-list={false}
+              before-upload={(file) => {
+                handleImageUpload(file);
+                return false;
+              }}
+            >
+              <el-button type="danger">上传图片</el-button>
+            </el-upload>
           </div>
           <div class="slider-demo-block">
             <el-icon onClick={() => sliderValues.brightness = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
