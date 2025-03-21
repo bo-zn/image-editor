@@ -2,8 +2,12 @@ import * as fabric from 'fabric';
 
 export class CropZone extends fabric.Rect {
 
-    private lastScaleX: number = 1; // 添加属性来存储上一次的缩放比例
-    private lastScaleY: number = 1; // 添加属性来存储上一次的缩放比例
+    private previousLeft: number = 0;
+    private previousTop: number = 0;
+    private previousScaleX: number = 0;
+    private previousScaleY: number = 0;
+    private previousWidth: number = 0;
+    private previousHeight: number = 0;
 
     constructor(options: fabric.TOptions<fabric.Rect>) {
         super({
@@ -17,20 +21,47 @@ export class CropZone extends fabric.Rect {
     }
 
     _onMoving(): void {
-        const { height, width, left, top } = this;
-        const maxX = this.canvas.width - width;
-        const maxY = this.canvas.height - height;
-        if (left < 0)
-            this.left = 0
-        if (top < 0)
-            this.top = 0
-        if (left > maxX)
-            this.left = maxX
-        if (top > maxY)
-            this.top = maxY
+        this.setCoords();
+        const boundingRect = this.getBoundingRect();
+
+        if (this.height >= this.canvas.height || this.width >= this.canvas.width) {
+            return;
+        }
+
+        if (boundingRect.top <= 0 || boundingRect.left <= 0) {
+            this.top = Math.max(this.top, this.top - boundingRect.top);
+            this.left = Math.max(this.left, this.left - boundingRect.left);
+        }
+
+        if (boundingRect.top + boundingRect.height >= this.canvas.height || boundingRect.left + boundingRect.width >= this.canvas.width) {
+            this.top = Math.min(this.top, this.canvas.height - boundingRect.height + this.top - boundingRect.top);
+            this.left = Math.min(this.left, this.canvas.width - boundingRect.width + this.left - boundingRect.left);
+        }
     }
 
-    _onScaling(fEvent: { e: MouseEvent }): void { }
+    _onScaling(fEvent: { e: MouseEvent }): void {
+        this.setCoords();
+        const boundingRect = this.getBoundingRect();
+
+        if ((boundingRect.width + boundingRect.left >= this.canvas.width) ||
+            (boundingRect.height + boundingRect.top >= this.canvas.height) ||
+            (boundingRect.left < 0) ||
+            (boundingRect.top < 0)) {
+            this.left = this.previousLeft;
+            this.top = this.previousTop;
+            this.scaleX = this.previousScaleX;
+            this.scaleY = this.previousScaleY;
+            this.width = this.previousWidth;
+            this.height = this.previousHeight;
+        } else {
+            this.previousLeft = this.left;
+            this.previousTop = this.top;
+            this.previousScaleX = this.scaleX;
+            this.previousScaleY = this.scaleY;
+            this.previousWidth = this.width;
+            this.previousHeight = this.height;
+        }
+    }
 
     _render(ctx: CanvasRenderingContext2D): void {
         super._render(ctx);
@@ -40,7 +71,7 @@ export class CropZone extends fabric.Rect {
         const scaleX = flipX / this.scaleX;
         const scaleY = flipY / this.scaleY;
 
-        ctx.scale(scaleX, scaleY);
+        // ctx.scale(scaleX, scaleY);
 
         ctx.fillStyle = 'rgba(0, 0, 0, 0)';
 
@@ -58,7 +89,6 @@ export class CropZone extends fabric.Rect {
         this._renderBorders(ctx);
         this._renderGrid(ctx);
 
-        ctx.scale(1 / scaleX, 1 / scaleY);
     }
 
     _renderBorders(ctx: CanvasRenderingContext2D): void {
