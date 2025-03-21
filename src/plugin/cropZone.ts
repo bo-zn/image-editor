@@ -32,8 +32,6 @@ export class CropZone extends fabric.Rect {
             if (top > maxY)
                 this.top = maxY
 
-            this.dispatchEvent('crop:update');
-
         }
     }
 
@@ -141,14 +139,7 @@ export class CropZone extends fabric.Rect {
                 width: rightX - leftX,
                 height: bottomY - topY
             });
-
-            this.dispatchEvent('crop:update');
         }
-    }
-
-    dispatchEvent(eventName: string): void {
-        const event = new Event(eventName, { bubbles: true, cancelable: true });
-        this.canvas?.getElement().dispatchEvent(event);
     }
 
     _render(ctx: CanvasRenderingContext2D): void {
