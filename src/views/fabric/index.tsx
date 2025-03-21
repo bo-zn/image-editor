@@ -32,6 +32,10 @@ export default defineComponent({
       shadows: 0     // 阴影
     });
 
+    // 定义全局容器宽高
+    const containerWidth = 800;
+    const containerHeight = 700;
+
     onMounted(() => {
       initializeCanvas('/src/assets/test.jpg');
     });
@@ -48,26 +52,30 @@ export default defineComponent({
         if (fabricCanvas.value) {
           fabricCanvas.value.dispose();
         }
-        fabricCanvas.value = new fabric.Canvas(canvasRef.value);
+
         const imgElement = new Image();
         imgElement.src = imageSrc;
         imgElement.onload = () => {
-          const scale = Math.min(
-            canvasRef.value!.width / imgElement.width,
-            canvasRef.value!.height / imgElement.height
-          );
-          const imgInstance = new fabric.Image(imgElement, { // 使用 fabric.Image
-            left: (canvasRef.value!.width - imgElement.width * scale) / 2,
-            top: (canvasRef.value!.height - imgElement.height * scale) / 2,
+          // 计算缩放比例
+          const scale = Math.min(containerWidth / imgElement.width, containerHeight / imgElement.height);
+
+          canvasRef.value!.width = imgElement.width * scale;
+          canvasRef.value!.height = imgElement.height * scale;
+
+          fabricCanvas.value = new fabric.Canvas(canvasRef.value);
+
+          const imgInstance = new fabric.Image(imgElement, {
+            left: 0,
+            top: 0,
+            scaleX: scale,
+            scaleY: scale,
             selectable: false,
             hasBorders: false,
             hasControls: false,
             evented: false,
-            scaleX: scale,
-            scaleY: scale,
           });
 
-          imgInstanceRef.value = imgInstance; // 存储 imgInstance
+          imgInstanceRef.value = imgInstance;
 
           // 更新图片属性
           imageProperties.width = imgElement.width * scale;
@@ -91,7 +99,7 @@ export default defineComponent({
 
 
     const showCropZone = () => {
-      if (fabricCanvas.value && imgInstanceRef.value instanceof fabric.Image) { // 确保 imgInstanceRef.value 是 fabric.Image 类型
+      if (fabricCanvas.value && imgInstanceRef.value instanceof fabric.Image) {
         cropZone = new CropZone({
           left: imageProperties.left + (imageProperties.width - cropZoneProperties.width) / 2,
           top: imageProperties.top + (imageProperties.height - cropZoneProperties.height) / 2,
@@ -105,7 +113,7 @@ export default defineComponent({
           lockScalingY: false,
           cornerSize: 10,
           cornerStyle: 'circle',
-        }, imgInstanceRef.value); // 传入图片实例
+        });
 
         cropZone.setControlsVisibility({
           mtr: false,
@@ -287,8 +295,11 @@ export default defineComponent({
             <el-slider v-model={sliderValues.shadows} min={-100} max={100} />
           </div>
         </div>
-        <div style="border: 1px dashed #409eff" class="w-[800px] h-[700px] rounded-lg flex items-center justify-center">
-          <canvas ref={canvasRef} width="800" height="600"></canvas>
+        <div
+          style={`border: 1px dashed #409eff; width: ${containerWidth}px; height: ${containerHeight}px;`}
+          class="rounded-lg flex items-center justify-center"
+        >
+          <canvas ref={canvasRef}></canvas>
         </div>
       </el-main>
     );
