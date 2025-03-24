@@ -1,15 +1,20 @@
 import * as fabric from "fabric";
-import { CropZone } from '../../plugin/cropZone'; // 导入封装的 CropZone
+import Cropper from '@/components/cropper'
 
 export default defineComponent({
   setup() {
     const canvasRef = ref<HTMLCanvasElement | null>(null);
+    const cropperRef = ref(null);
     const fabricCanvas = ref<fabric.Canvas | null>(null);
-    let cropZone: CropZone | null = null;
-    const imgInstanceRef = ref<fabric.Image | null>(null); // 存储 imgInstance
-    const uploadedImageSrc = ref<string | null>(null); // 存储上传的图片路径
+    const imgInstanceRef = ref<fabric.Image | null>(null);
+    const uploadedImageSrc = ref<string | null>(null);
+    const showCropper = ref<boolean>(true);
 
-    // 全局存储图片和 CropZone 的属性
+    const containerSize = {
+      width: 800,
+      height: 700
+    };
+
     const imageProperties = reactive({
       width: 0,
       height: 0,
@@ -17,24 +22,15 @@ export default defineComponent({
       top: 0,
     });
 
-    const cropZoneProperties = reactive({
-      width: 200,
-      height: 200,
-    });
-
     const sliderValues = reactive({
-      brightness: 0, // 亮度
-      contrast: 0,   // 对比度
-      saturation: 0, // 饱和度
-      sharpness: 0,  // 锐度/清晰度，
-      exposure: 0,   // 曝光度
-      highlights: 0, // 高光
-      shadows: 0     // 阴影
+      brightness: 0,
+      contrast: 0,
+      saturation: 0,
+      sharpness: 0,
+      exposure: 0,
+      highlights: 0,
+      shadows: 0
     });
-
-    // 定义全局容器宽高
-    const containerWidth = 800;
-    const containerHeight = 700;
 
     onMounted(() => {
       initializeCanvas('/src/assets/test.jpg');
@@ -42,12 +38,6 @@ export default defineComponent({
 
     const initializeCanvas = (imageSrc: string) => {
       if (canvasRef.value) {
-        // 销毁现有的 CropZone 实例
-        if (cropZone) {
-          fabricCanvas.value?.remove(cropZone);
-          cropZone.dispose(); // 销毁 CropZone 实例
-          cropZone = null;
-        }
         // 销毁现有的 fabric.Canvas 实例
         if (fabricCanvas.value) {
           fabricCanvas.value.dispose();
@@ -56,8 +46,7 @@ export default defineComponent({
         const imgElement = new Image();
         imgElement.src = imageSrc;
         imgElement.onload = () => {
-          // 计算缩放比例
-          const scale = Math.min(containerWidth / imgElement.width, containerHeight / imgElement.height);
+          const scale = Math.min(containerSize.width / imgElement.width, containerSize.height / imgElement.height);
 
           canvasRef.value!.width = imgElement.width * scale;
           canvasRef.value!.height = imgElement.height * scale;
@@ -77,7 +66,6 @@ export default defineComponent({
 
           imgInstanceRef.value = imgInstance;
 
-          // 更新图片属性
           imageProperties.width = imgElement.width * scale;
           imageProperties.height = imgElement.height * scale;
           imageProperties.left = imgInstance.left;
@@ -95,48 +83,6 @@ export default defineComponent({
         initializeCanvas(uploadedImageSrc.value);
       };
       reader.readAsDataURL(file);
-    };
-
-
-    const showCropZone = () => {
-      if (fabricCanvas.value && imgInstanceRef.value instanceof fabric.Image) {
-        cropZone = new CropZone({
-          left: imageProperties.left + (imageProperties.width - cropZoneProperties.width) / 2,
-          top: imageProperties.top + (imageProperties.height - cropZoneProperties.height) / 2,
-          width: cropZoneProperties.width,
-          height: cropZoneProperties.height,
-          fill: "rgba(0,0,0,0)",
-          hasBorders: true,
-          hasControls: true,
-          selectable: true,
-          lockScalingX: false,
-          lockScalingY: false,
-          cornerSize: 10,
-          cornerStyle: 'circle',
-        });
-
-        cropZone.setControlsVisibility({
-          mtr: false,
-        });
-
-        fabricCanvas.value.add(markRaw(cropZone));
-        fabricCanvas.value.setActiveObject(cropZone); // 设置为选中状态
-        fabricCanvas.value.renderAll();
-      }
-    };
-
-    const resetCropZoneProperties = () => {
-      cropZoneProperties.width = 200;
-      cropZoneProperties.height = 200;
-    };
-
-    const hideCropZone = () => {
-      if (fabricCanvas.value && cropZone) {
-        fabricCanvas.value.remove(cropZone);
-        cropZone = null;
-        fabricCanvas.value.renderAll();
-        resetCropZoneProperties();
-      }
     };
 
     // 假设 fabric.js 支持这些滤镜，或者你已经实现了自定义滤镜
@@ -187,46 +133,34 @@ export default defineComponent({
     watch(() => sliderValues.shadows, (newValue) => applyFilter('Shadows', newValue, 6));
 
     const downloadImage = () => {
-      if (fabricCanvas.value) {
-        let tempCanvas = document.createElement('canvas');
-        let tempCtx = tempCanvas.getContext('2d');
-        if (cropZone) {
-          tempCanvas.width = cropZone.width;
-          tempCanvas.height = cropZone.height;
-          const { left, top, width, height } = cropZone
-          if (tempCtx && imgInstanceRef.value) {
-            hideCropZone()
-            setTimeout(() => {
-              const imgData = fabricCanvas.value.contextContainer.getImageData(
-                left, top, width, height
-              );
-              tempCtx.putImageData(imgData, 0, 0);
-              const dataURL = tempCanvas.toDataURL();
-              const link = document.createElement('a');
-              link.href = dataURL;
-              link.download = cropZone ? 'cropped-image.png' : 'full-image.png';
-              link.click();
-            }, 1000);
-
-          }
-        } else {
-          tempCanvas.width = fabricCanvas.value.width;
-          tempCanvas.height = fabricCanvas.value.height;
-          if (tempCtx && imgInstanceRef.value) {
-            const imgData = fabricCanvas.value.contextContainer.getImageData(
-              0,
-              0,
-              fabricCanvas.value.width,
-              fabricCanvas.value.height
-            );
-            tempCtx.putImageData(imgData, 0, 0);
-            const dataURL = tempCanvas.toDataURL();
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = cropZone ? 'cropped-image.png' : 'full-image.png';
-            link.click();
-          }
-        }
+      if (!fabricCanvas.value) return
+      let tempCanvas = document.createElement('canvas');
+      let tempCtx = tempCanvas.getContext('2d');
+      let top = 0
+      let left = 0
+      if (showCropper.value) {
+        tempCanvas.width = fabricCanvas.value.width;
+        tempCanvas.height = fabricCanvas.value.height;
+      } else {
+        if (!cropperRef.value?.exposePosi) return
+        tempCanvas.width = cropperRef.value.exposePosi.w;
+        tempCanvas.height = cropperRef.value.exposePosi.h;
+        top = cropperRef.value.exposePosi.x
+        left = cropperRef.value.exposePosi.y
+      }
+      if (tempCtx && imgInstanceRef.value) {
+        const imgData = fabricCanvas.value.contextContainer.getImageData(
+          top,
+          left,
+          tempCanvas.width,
+          tempCanvas.height
+        );
+        tempCtx.putImageData(imgData, 0, 0);
+        const dataURL = tempCanvas.toDataURL();
+        const link = document.createElement('a');
+        link.href = dataURL;
+        link.download = 'image.png'
+        link.click();
       }
     }
 
@@ -243,8 +177,11 @@ export default defineComponent({
     return () => (
       <el-main class="h-full flex items-center justify-center gap-20">
         <div class="w-[300px]">
-          <el-button type="primary" onClick={showCropZone}>剪裁</el-button>
-          <el-button type="info" onClick={hideCropZone}>取消</el-button>
+          {
+            showCropper.value ?
+              <el-button type="primary" onClick={() => showCropper.value = false}>剪裁</el-button> :
+              <el-button type="info" onClick={() => showCropper.value = true}>取消剪裁</el-button>
+          }
           <el-button type="warning" onClick={downloadImage}>下载</el-button>
           <el-button type="success" onClick={resetAllProperties}>重置</el-button>
           <div class="mt-4 mb-4">
@@ -296,10 +233,16 @@ export default defineComponent({
           </div>
         </div>
         <div
-          style={`border: 1px dashed #409eff; width: ${containerWidth}px; height: ${containerHeight}px;`}
-          class="rounded-lg flex items-center justify-center"
+          style={`border: 1px dashed #409eff; width: ${containerSize.width}px; height: ${containerSize.height}px;`}
+          class="rounded-lg flex items-center justify-center relative"
         >
           <canvas ref={canvasRef}></canvas>
+          <Cropper
+            ref={cropperRef}
+            v-show={!showCropper.value}
+            class="absolute rounded-lg flex items-center justify-center"
+            size={{ width: imageProperties.width, height: imageProperties.height }}
+          />
         </div>
       </el-main>
     );
