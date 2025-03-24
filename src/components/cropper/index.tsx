@@ -10,7 +10,7 @@ import {
 } from "./util";
 
 export default defineComponent({
-  name: "mask",
+  name: "Cropper",
   props: {
     size: {
       type: Object as () => { width: number; height: number },
@@ -224,7 +224,7 @@ export default defineComponent({
     };
 
     watch(
-      () => props.size,
+      () => props.size.width,
       (newVal) => {
         if (newVal && canvasRef.value) {
           ctx = canvasRef.value.getContext("2d") as CanvasRenderingContext2D;
