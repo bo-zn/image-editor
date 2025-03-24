@@ -174,6 +174,16 @@ export default defineComponent({
       sliderValues.shadows = 0;
     };
 
+    const sliderConfigs = [
+      { label: '亮度', key: 'brightness' },
+      { label: '对比度', key: 'contrast' },
+      { label: '饱和度', key: 'saturation' },
+      { label: '锐度/清晰度', key: 'sharpness' },
+      { label: '曝光度', key: 'exposure' },
+      { label: '高光', key: 'highlights' },
+      { label: '阴影', key: 'shadows' },
+    ];
+
     return () => (
       <el-main class="h-full flex items-center justify-center gap-20">
         <div class="w-[300px]">
@@ -196,41 +206,13 @@ export default defineComponent({
               <el-button type="danger">上传图片</el-button>
             </el-upload>
           </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.brightness = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">亮度：{sliderValues.brightness}</span>
-            <el-slider v-model={sliderValues.brightness} min={-100} max={100} />
-          </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.contrast = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">对比度：{sliderValues.contrast}</span>
-            <el-slider v-model={sliderValues.contrast} min={-100} max={100} />
-          </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.saturation = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">饱和度：{sliderValues.saturation}</span>
-            <el-slider v-model={sliderValues.saturation} min={-100} max={100} />
-          </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.sharpness = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">锐度/清晰度：{sliderValues.sharpness}</span>
-            <el-slider v-model={sliderValues.sharpness} min={-100} max={100} />
-          </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.exposure = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">曝光度：{sliderValues.exposure}</span>
-            <el-slider v-model={sliderValues.exposure} min={-100} max={100} />
-          </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.highlights = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">高光：{sliderValues.highlights}</span>
-            <el-slider v-model={sliderValues.highlights} min={-100} max={100} />
-          </div>
-          <div class="slider-demo-block">
-            <el-icon onClick={() => sliderValues.shadows = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
-            <span class="demonstration">阴影：{sliderValues.shadows}</span>
-            <el-slider v-model={sliderValues.shadows} min={-100} max={100} />
-          </div>
+          {sliderConfigs.map(({ label, key }) => (
+            <div class="slider-demo-block" key={key}>
+              <el-icon onClick={() => sliderValues[key] = 0} class="reset-icon mr-4 cursor-pointer">🔄</el-icon>
+              <span class="demonstration">{label}：{sliderValues[key]}</span>
+              <el-slider v-model={sliderValues[key]} min={-100} max={100} />
+            </div>
+          ))}
         </div>
         <div
           style={`border: 1px dashed #409eff; width: ${containerSize.width}px; height: ${containerSize.height}px;`}
