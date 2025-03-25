@@ -10,9 +10,19 @@ export default defineComponent({
     const uploadedImageSrc = ref<string | null>(null);
     const showCropper = ref<boolean>(true);
 
+    const sliderConfigs = [
+      { label: '亮度', key: 'brightness' },
+      { label: '对比度', key: 'contrast' },
+      { label: '饱和度', key: 'saturation' },
+      { label: '锐度/清晰度', key: 'sharpness' },
+      { label: '曝光度', key: 'exposure' },
+      { label: '高光', key: 'highlights' },
+      { label: '阴影', key: 'shadows' },
+    ];
+
     const containerSize = {
-      width: 800,
-      height: 700
+      width: 600,
+      height: 600
     };
 
     const imageProperties = reactive({
@@ -173,16 +183,6 @@ export default defineComponent({
       sliderValues.highlights = 0;
       sliderValues.shadows = 0;
     };
-
-    const sliderConfigs = [
-      { label: '亮度', key: 'brightness' },
-      { label: '对比度', key: 'contrast' },
-      { label: '饱和度', key: 'saturation' },
-      { label: '锐度/清晰度', key: 'sharpness' },
-      { label: '曝光度', key: 'exposure' },
-      { label: '高光', key: 'highlights' },
-      { label: '阴影', key: 'shadows' },
-    ];
 
     return () => (
       <el-main class="h-full flex items-center justify-center gap-20">
