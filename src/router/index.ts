@@ -13,6 +13,10 @@ const routes: Array<RouteRecordRaw> = [
         path: '/cropper',
         component: () => import('@/views/cropper')
     },
+    {
+        path: '/webgl',
+        component: () => import('@/views/webgl')
+    },
 ];
 
 const router = createRouter({

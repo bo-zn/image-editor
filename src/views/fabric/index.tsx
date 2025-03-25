@@ -1,5 +1,6 @@
 import * as fabric from "fabric";
 import Cropper from '@/components/cropper'
+import { debounce } from 'lodash';
 
 export default defineComponent({
   setup() {
@@ -102,45 +103,57 @@ export default defineComponent({
           let filter;
           switch (filterType) {
             case 'Brightness':
-              filter = new fabric.filters.Brightness({ brightness: value / 200 });
+              filter = new fabric.filters.Brightness({ brightness: value / 2 });
               break;
             case 'Contrast':
-              filter = new fabric.filters.Contrast({ contrast: value / 400 });
+              filter = new fabric.filters.Contrast({ contrast: value / 4 });
               break;
             case 'Saturation':
-              filter = new fabric.filters.Saturation({ saturation: value / 100 });
+              filter = new fabric.filters.Saturation({ saturation: value });
               break;
             case 'Sharpness':
-              filter = new fabric.filters.Sharpness({ sharpness: value / 100 });
+              const sharpenMatrix = [
+                0, -1 * value, 0,
+                -1 * value, 1 + 4 * value, -1 * value,
+                0, -1 * value, 0
+              ];
+              filter = new fabric.filters.Convolute({ matrix: sharpenMatrix });
               break;
             case 'Exposure':
-              filter = new fabric.filters.Exposure({ exposure: value / 100 });
+              const gammaValue = value > 0 ? 6 + (value) : 1 / (1 - value);
+              console.log(gammaValue)
+              filter = new fabric.filters.Gamma({
+                gamma: [gammaValue, gammaValue, gammaValue]
+              });
               break;
             case 'Highlights':
-              filter = new fabric.filters.Highlights({ highlights: value / 100 });
+              filter = new fabric.filters.Highlights({ highlights: value });
               break;
             case 'Shadows':
-              filter = new fabric.filters.Shadows({ shadows: value / 100 });
+              filter = new fabric.filters.Shadows({ shadows: value });
               break;
             default:
               return;
           }
-          imgInstanceRef.value.filters[index] = filter;
-          imgInstanceRef.value.applyFilters();
-          fabricCanvas.value?.renderAll();
+          if (filter) {
+            imgInstanceRef.value.filters[index] = filter;
+            imgInstanceRef.value.applyFilters();
+            fabricCanvas.value?.renderAll();
+          }
         } catch (error) {
           console.error(`Error applying ${filterType} filter:`, error);
         }
       }
     };
 
-    watch(() => sliderValues.brightness, (newValue) => applyFilter('Brightness', newValue, 0));
-    watch(() => sliderValues.contrast, (newValue) => applyFilter('Contrast', newValue, 1));
-    watch(() => sliderValues.saturation, (newValue) => applyFilter('Saturation', newValue, 2));
-    watch(() => sliderValues.sharpness, (newValue) => applyFilter('Sharpness', newValue, 3));
-    watch(() => sliderValues.exposure, (newValue) => applyFilter('Exposure', newValue, 4));
-    watch(() => sliderValues.highlights, (newValue) => applyFilter('Highlights', newValue, 5));
-    watch(() => sliderValues.shadows, (newValue) => applyFilter('Shadows', newValue, 6));
+    const filterTypes = ['Brightness', 'Contrast', 'Saturation', 'Sharpness', 'Exposure', 'Highlights', 'Shadows'];
+
+    const applyFilterDebounced = debounce(applyFilter, 0);
+
+    filterTypes.forEach((type, index) => {
+      watch(() => sliderValues[type.toLowerCase()], (newValue) => applyFilterDebounced(type, newValue / 100, index));
+    });
+
 
     const downloadImage = () => {
       if (!fabricCanvas.value) return
