@@ -10,7 +10,7 @@ export default defineComponent({
                 imgElement.src = imageSrc;
                 imgElement.onload = () => {
                     // 应用滤镜
-                    const filter = new WebGLImageFilter({ canvas });
+                    const filter = new window.WebGLImageFilter({ canvas });
                     filter.addFilter('sharpen', -1);
                     filter.apply(imgElement);
 

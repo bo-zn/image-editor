@@ -1,6 +1,7 @@
 import * as fabric from "fabric";
 import Cropper from '@/components/cropper'
 import { debounce } from 'lodash';
+import { Exposure } from '@/filters/exposure';
 
 export default defineComponent({
   setup() {
@@ -76,7 +77,6 @@ export default defineComponent({
           });
 
           imgInstanceRef.value = imgInstance;
-
           imageProperties.width = imgElement.width * scale;
           imageProperties.height = imgElement.height * scale;
           imageProperties.left = imgInstance.left;
@@ -120,11 +120,7 @@ export default defineComponent({
               filter = new fabric.filters.Convolute({ matrix: sharpenMatrix });
               break;
             case 'Exposure':
-              const gammaValue = value > 0 ? 6 + (value) : 1 / (1 - value);
-              console.log(gammaValue)
-              filter = new fabric.filters.Gamma({
-                gamma: [gammaValue, gammaValue, gammaValue]
-              });
+              filter = new Exposure({ exposure: value });
               break;
             case 'Highlights':
               filter = new fabric.filters.Highlights({ highlights: value });
