@@ -123,10 +123,10 @@ export default defineComponent({
               filter = new Exposure({ exposure: value });
               break;
             case 'Highlights':
-              filter = new fabric.filters.Highlights({ highlights: value });
+              filter = new fabric.filters.Highlights({ highlights: value }); // need to implement
               break;
             case 'Shadows':
-              filter = new fabric.filters.Shadows({ shadows: value });
+              filter = new fabric.filters.Shadows({ shadows: value }); // need to implement
               break;
             default:
               return;
