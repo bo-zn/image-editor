@@ -20,6 +20,8 @@ export default defineComponent({
       { label: '曝光度', key: 'exposure' },
       { label: '高光', key: 'highlights' },
       { label: '阴影', key: 'shadows' },
+      { label: '色温', key: 'temperature' },
+      { label: '色调', key: 'tint' }
     ];
 
     const containerSize = {
@@ -41,7 +43,9 @@ export default defineComponent({
       sharpness: 0,
       exposure: 0,
       highlights: 0,
-      shadows: 0
+      shadows: 0,
+      temperature: 0,
+      tint: 0
     });
 
     onMounted(() => {
@@ -128,6 +132,26 @@ export default defineComponent({
             case 'Shadows':
               filter = new Shadow({ shadow: value });
               break;
+            case 'Temperature':
+              filter = new fabric.filters.ColorMatrix({
+                matrix: [
+                  1 + value * 0.6, 0, 0, 0, 0,
+                  0, 1, 0, 0, 0,
+                  0, 0, 1 - value * 0.6, 0, 0,
+                  0, 0, 0, 1, 0
+                ]
+              });
+              break;
+            case 'Tint':
+              filter = new fabric.filters.ColorMatrix({
+                matrix: [
+                  1, 0, 0, 0, 0,
+                  0, 1 + value * 0.8, 0, 0, 0,
+                  0, 0, 1, 0, 0,
+                  0, 0, 0, 1, 0
+                ]
+              });
+              break;
             default:
               return;
           }
@@ -142,7 +166,7 @@ export default defineComponent({
       }
     };
 
-    const filterTypes = ['Brightness', 'Contrast', 'Saturation', 'Sharpness', 'Exposure', 'Highlights', 'Shadows'];
+    const filterTypes = ['Brightness', 'Contrast', 'Saturation', 'Sharpness', 'Exposure', 'Highlights', 'Shadows', 'Temperature', 'Tint'];
 
     const applyFilterDebounced = debounce(applyFilter, 0);
 
