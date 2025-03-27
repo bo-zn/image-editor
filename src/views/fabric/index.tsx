@@ -1,7 +1,7 @@
 import * as fabric from "fabric";
 import Cropper from '@/components/cropper'
 import { debounce } from 'lodash';
-import { Exposure } from '@/filters/exposure';
+import { Exposure, Highlights, Shadow } from '@/filters';
 
 export default defineComponent({
   setup() {
@@ -123,10 +123,10 @@ export default defineComponent({
               filter = new Exposure({ exposure: value });
               break;
             case 'Highlights':
-              filter = new fabric.filters.Highlights({ highlights: value }); // need to implement
+              filter = new Highlights({ highlights: value });
               break;
             case 'Shadows':
-              filter = new fabric.filters.Shadows({ shadows: value }); // need to implement
+              filter = new Shadow({ shadow: value });
               break;
             default:
               return;
