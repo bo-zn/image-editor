@@ -54,11 +54,7 @@ export default defineComponent({
 
     const initializeCanvas = (imageSrc: string) => {
       if (canvasRef.value) {
-        // 销毁现有的 fabric.Canvas 实例
-        if (fabricCanvas.value) {
-          fabricCanvas.value.dispose();
-        }
-
+        fabricCanvas.value?.dispose();
         const imgElement = new Image();
         imgElement.src = imageSrc;
         imgElement.onload = () => {

@@ -7,7 +7,6 @@ export default defineComponent({
         const fabricCanvas = ref<fabric.Canvas | null>(null);
         const fabricInstanceRef = ref<fabric.Image | null>(null);
         const fabricCanvasRef = ref<HTMLCanvasElement | null>(null);
-        // const opencvCanvas = ref<fabric.Canvas | null>(null);
         const opencvCanvasRef = ref<HTMLCanvasElement | null>(null);
 
         const cv = window.cv
@@ -98,7 +97,7 @@ export default defineComponent({
         };
 
         const filterTypes = ['Brightness', 'Contrast', 'Saturation', 'Sharpness', 'Exposure', 'Highlights', 'Shadows', 'Temperature', 'Tint'];
-        
+
         const applyFabricFilter = (filterType: string, value: number, index: number) => {
             if (!fabricInstanceRef.value) return
             try {
@@ -221,17 +220,9 @@ export default defineComponent({
                         </div>
                     ))}
                 </div>
-                <div
-                    style={`border: 1px dashed #409eff; width: ${containerSize.width}px; height: ${containerSize.height}px;`}
-                    class="rounded-lg flex items-center justify-center relative"
-                >
-                    <canvas ref={fabricCanvasRef}></canvas>
-                </div>
-                <div
-                    style={`border: 1px dashed #ff0000; width: ${containerSize.width}px; height: ${containerSize.height}px;`}
-                    class="rounded-lg flex items-center justify-center relative"
-                >
-                    <canvas ref={opencvCanvasRef}></canvas>
+                <div class="flex gap-4">
+                    <canvas ref={fabricCanvasRef} style={`width: ${containerSize.width}px; height: ${containerSize.height}px;`}></canvas>
+                    <canvas ref={opencvCanvasRef} style={`width: ${containerSize.width}px; height: ${containerSize.height}px;`}></canvas>
                 </div>
             </el-main>
         );
