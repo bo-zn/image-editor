@@ -2,6 +2,7 @@ declare interface Window {
     WebGLImageFilter: {
         new(options: { canvas: HTMLCanvasElement }): WebGLImageFilterInstance;
     };
+    cv: any
 }
 
 interface WebGLImageFilterInstance {

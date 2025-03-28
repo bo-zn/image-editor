@@ -102,68 +102,68 @@ export default defineComponent({
 
     // 假设 fabric.js 支持这些滤镜，或者你已经实现了自定义滤镜
     const applyFilter = (filterType: string, value: number, index: number) => {
-      if (imgInstanceRef.value) {
-        try {
-          let filter;
-          switch (filterType) {
-            case 'Brightness':
-              filter = new fabric.filters.Brightness({ brightness: value / 2 });
-              break;
-            case 'Contrast':
-              filter = new fabric.filters.Contrast({ contrast: value / 4 });
-              break;
-            case 'Saturation':
-              filter = new fabric.filters.Saturation({ saturation: value });
-              break;
-            case 'Sharpness':
-              const sharpenMatrix = [
-                0, -1 * value, 0,
-                -1 * value, 1 + 4 * value, -1 * value,
-                0, -1 * value, 0
-              ];
-              filter = new fabric.filters.Convolute({ matrix: sharpenMatrix });
-              break;
-            case 'Exposure':
-              filter = new Exposure({ exposure: value });
-              break;
-            case 'Highlights':
-              filter = new Highlights({ highlights: value });
-              break;
-            case 'Shadows':
-              filter = new Shadow({ shadow: value });
-              break;
-            case 'Temperature':
-              filter = new fabric.filters.ColorMatrix({
-                matrix: [
-                  1 + value * 0.6, 0, 0, 0, 0,
-                  0, 1, 0, 0, 0,
-                  0, 0, 1 - value * 0.6, 0, 0,
-                  0, 0, 0, 1, 0
-                ]
-              });
-              break;
-            case 'Tint':
-              filter = new fabric.filters.ColorMatrix({
-                matrix: [
-                  1, 0, 0, 0, 0,
-                  0, 1 + value * 0.8, 0, 0, 0,
-                  0, 0, 1, 0, 0,
-                  0, 0, 0, 1, 0
-                ]
-              });
-              break;
-            default:
-              return;
-          }
-          if (filter) {
-            imgInstanceRef.value.filters[index] = filter;
-            imgInstanceRef.value.applyFilters();
-            fabricCanvas.value?.renderAll();
-          }
-        } catch (error) {
-          console.error(`Error applying ${filterType} filter:`, error);
+      if (!imgInstanceRef.value) return
+      try {
+        let filter;
+        switch (filterType) {
+          case 'Brightness':
+            filter = new fabric.filters.Brightness({ brightness: value / 2 });
+            break;
+          case 'Contrast':
+            filter = new fabric.filters.Contrast({ contrast: value / 4 });
+            break;
+          case 'Saturation':
+            filter = new fabric.filters.Saturation({ saturation: value });
+            break;
+          case 'Sharpness':
+            const sharpenMatrix = [
+              0, -1 * value, 0,
+              -1 * value, 1 + 4 * value, -1 * value,
+              0, -1 * value, 0
+            ];
+            filter = new fabric.filters.Convolute({ matrix: sharpenMatrix });
+            break;
+          case 'Exposure':
+            filter = new Exposure({ exposure: value });
+            break;
+          case 'Highlights':
+            filter = new Highlights({ highlights: value });
+            break;
+          case 'Shadows':
+            filter = new Shadow({ shadow: value });
+            break;
+          case 'Temperature':
+            filter = new fabric.filters.ColorMatrix({
+              matrix: [
+                1 + value * 0.6, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1 - value * 0.6, 0, 0,
+                0, 0, 0, 1, 0
+              ]
+            });
+            break;
+          case 'Tint':
+            filter = new fabric.filters.ColorMatrix({
+              matrix: [
+                1, 0, 0, 0, 0,
+                0, 1 + value * 0.8, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 1, 0
+              ]
+            });
+            break;
+          default:
+            return;
         }
+        if (filter) {
+          imgInstanceRef.value.filters[index] = filter;
+          imgInstanceRef.value.applyFilters();
+          fabricCanvas.value?.renderAll();
+        }
+      } catch (error) {
+        console.error(`Error applying ${filterType} filter:`, error);
       }
+
     };
 
     const filterTypes = ['Brightness', 'Contrast', 'Saturation', 'Sharpness', 'Exposure', 'Highlights', 'Shadows', 'Temperature', 'Tint'];

@@ -17,6 +17,10 @@ const routes: Array<RouteRecordRaw> = [
         path: '/webgl',
         component: () => import('@/views/webgl')
     },
+    {
+        path: '/fabric-vs-opencv',
+        component: () => import('@/views/fabric-vs-opencv')
+    },
 ];
 
 const router = createRouter({
