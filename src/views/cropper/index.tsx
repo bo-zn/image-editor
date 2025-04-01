@@ -1,13 +1,11 @@
-
-
-import 'cropperjs';
+import 'cropperjs'
 
 export default defineComponent({
   setup() {
     return () => (
       <el-main class="h-full flex items-center justify-center ">
         <div class="w-[800px] h-[700px]">
-          <cropper-canvas class="w-full h-full" >
+          <cropper-canvas class="w-full h-full">
             <cropper-image src="/src/assets/test.jpg" alt="Picture" rotatable skewable translatable></cropper-image>
             <cropper-shade hidden></cropper-shade>
             <cropper-handle action="select" plain></cropper-handle>
@@ -27,6 +25,6 @@ export default defineComponent({
           </cropper-canvas>
         </div>
       </el-main>
-    );
+    )
   }
-});
+})

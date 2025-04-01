@@ -22,7 +22,7 @@
 
     /* JSX support */
     "jsx": "preserve",
-    "jsxFactory": "h",
+    "jsxFactory": "h"
   },
   "include": ["vite.config.ts"]
 }
