@@ -1,11 +1,3 @@
-/*
- * @Author: sunjinbo sunjinbo@forensix.cn
- * @Date: 2025-03-18 17:05:36
- * @LastEditors: sunjinbo sunjinbo@forensix.cn
- * @LastEditTime: 2025-04-01 11:21:11
- * @FilePath: \image-editor\src\views\fabric\index.tsx
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
- */
 import * as fabric from 'fabric'
 import Cropper from '@/components/cropper'
 import { debounce } from 'lodash'
@@ -123,9 +115,14 @@ export default defineComponent({
             filter = new fabric.filters.Saturation({ saturation: value })
             break
           case 'Sharpness':
-            value = value / 100 // -1 到 1
-            const sharpenMatrix = [0, -1 * value, 0, -1 * value, 1 + 4 * value, -1 * value, 0, -1 * value, 0]
-            filter = new fabric.filters.Convolute({ matrix: sharpenMatrix })
+            value = value / 100;  // -1 到 1
+            // prettier-ignore
+            const sharpenMatrix = [
+              0, -1 * value, 0,
+              -1 * value, 1 + 4 * value, -1 * value,
+              0, -1 * value, 0
+            ];
+            filter = new fabric.filters.Convolute({ matrix: sharpenMatrix });
             break
           case 'Exposure':
             value = value / 100 // -1 到 1

@@ -9,36 +9,31 @@ const fragmentSource = `
   void main() {
     vec4 color = texture2D(uTexture, vTexCoord);
     
-    // 计算灰度值
+    // 计算灰度值（与OpenCV一致）
     float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
     
-    // 计算高光阈值
-    float threshold = gray * gray;
+    // 计算高光区域值
+    float thresh = gray * gray;
     
-    // 将 -1 到 1 的范围映射到合适的增益范围
-    float max_bright = 4.0;
-    float bright = uHighlights * 0.5; // 将 -1,1 映射到 -0.5,0.5
-    float mid = 1.0 + max_bright * bright;
+    // 参数设置
+    float max_factor = 4.0;
+    float bright = uHighlights / 100.0 / max_factor;
+    float mid = 1.0 + max_factor * bright;
     
-    // 使用更柔和的阈值过渡
-    float transition = smoothstep(0.3, 0.7, threshold);
-    float midrate = mix(1.0, mid, transition);
-    float brightrate = mix(0.0, abs(bright), transition);
+    // 使用固定阈值（因为shader中无法计算整个图像的平均值）
+    float threshold = 0.6;  // 这个值可以调整
+    float midrate, brightrate;
     
-    // 调整亮度计算
-    vec3 adjusted;
-    if (bright != 0.0) {
-        adjusted = pow(color.rgb, vec3(1.0 / midrate));
-        if (bright > 0.0) {
-            adjusted *= (1.0 + brightrate);
-        } else {
-            adjusted *= (1.0 - brightrate);
-        }
+    if (thresh >= threshold) {
+        midrate = mid;
+        brightrate = bright;
     } else {
-        adjusted = color.rgb;
+        midrate = (mid - 1.0) / threshold * thresh + 1.0;  // 使用与OpenCV相同的公式
+        brightrate = (thresh / threshold) * bright;  // 使用与OpenCV相同的公式
     }
     
-    // 确保结果在有效范围内
+    // 应用高光调整（与OpenCV完全一致）
+    vec3 adjusted = pow(color.rgb, vec3(1.0 / midrate)) * (1.0 / (1.0 - brightrate));
     adjusted = clamp(adjusted, 0.0, 1.0);
     
     gl_FragColor = vec4(adjusted, color.a);
