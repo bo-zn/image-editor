@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
-    "jsx": "preserve", // 或者使用 "react-jsx"
+    "jsx": "preserve",
     "allowImportingTsExtensions": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
