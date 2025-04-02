@@ -115,21 +115,21 @@ export default defineComponent({
             filter = new fabric.filters.Saturation({ saturation: value })
             break
           case 'Sharpness':
-            value = value / 100;  // -1 到 1
+            value = value / 100 // -1 到 1
             // prettier-ignore
             const sharpenMatrix = [
               0, -1 * value, 0,
               -1 * value, 1 + 4 * value, -1 * value,
               0, -1 * value, 0
             ];
-            filter = new fabric.filters.Convolute({ matrix: sharpenMatrix });
+            filter = new fabric.filters.Convolute({ matrix: sharpenMatrix })
             break
           case 'Exposure':
             value = value / 100 // -1 到 1
             filter = new Exposure({ exposure: value })
             break
           case 'Highlights':
-            value = value / 100 // -1 到 1
+            value = value / 2 // -50 到 50
             filter = new Highlights({ highlights: value })
             break
           case 'Shadows':

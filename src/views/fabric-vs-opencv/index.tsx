@@ -125,7 +125,12 @@ export default defineComponent({
             break
           case 'Sharpness':
             value = value / 100 // -1 到 1
-            const sharpenMatrix = [0, -1 * value, 0, -1 * value, 1 + 4 * value, -1 * value, 0, -1 * value, 0]
+            // prettier-ignore
+            const sharpenMatrix = [
+              0, -1 * value, 0,
+              -1 * value, 1 + 4 * value, -1 * value,
+              0, -1 * value, 0
+            ];
             filter = new fabric.filters.Convolute({ matrix: sharpenMatrix })
             break
           case 'Exposure':
@@ -133,7 +138,7 @@ export default defineComponent({
             filter = new Exposure({ exposure: value })
             break
           case 'Highlights':
-            value = value / 100 // -1 到 1
+            value = value / 2 // -50 到 50
             filter = new Highlights({ highlights: value })
             break
           case 'Shadows':
@@ -145,25 +150,25 @@ export default defineComponent({
             value = (value / 100) * 0.6 // -0.6 到 0.6
             // prettier-ignore
             filter = new fabric.filters.ColorMatrix({
-                      matrix: [
-                        1 + value, 0, 0, 0, 0,
-                        0, 1, 0, 0, 0,
-                        0, 0, 1 - value, 0, 0,
-                        0, 0, 0, 1, 0
-                      ]
-                    });
+              matrix: [
+                1 + value, 0, 0, 0, 0,
+                0, 1, 0, 0, 0,
+                0, 0, 1 - value, 0, 0,
+                0, 0, 0, 1, 0
+              ]
+            });
             break
           case 'Tint':
             value = (value / 100) * 0.8 // -0.8 到 0.8
             // prettier-ignore
             filter = new fabric.filters.ColorMatrix({
-                      matrix: [
-                        1, 0, 0, 0, 0,
-                        0, 1 + value, 0, 0, 0,
-                        0, 0, 1, 0, 0,
-                        0, 0, 0, 1, 0
-                      ]
-                    });
+              matrix: [
+                1, 0, 0, 0, 0,
+                0, 1 + value, 0, 0, 0,
+                0, 0, 1, 0, 0,
+                0, 0, 0, 1, 0
+              ]
+            });
             break
           default:
             return
