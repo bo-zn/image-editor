@@ -2,6 +2,8 @@ import * as fabric from 'fabric'
 import { debounce } from 'lodash'
 import { Exposure, Highlights, Shadow } from '@/filters'
 
+const testImage = new URL('@/assets/test.jpg', import.meta.url).href
+
 export default defineComponent({
   setup() {
     const fabricCanvas = ref<fabric.Canvas | null>(null)
@@ -41,8 +43,8 @@ export default defineComponent({
     })
 
     onMounted(() => {
-      initializeCanvas('/src/assets/test.jpg')
-      initializeOpenCV('/src/assets/test.jpg')
+      initializeCanvas(testImage)
+      initializeOpenCV(testImage)
     })
 
     const initializeCanvas = (imageSrc: string) => {
@@ -184,7 +186,7 @@ export default defineComponent({
     }
     const applyOpenCVFilter = (filterType: string, value: number) => {
       const imgElement = new Image()
-      imgElement.src = '/src/assets/test.jpg' // 确保使用相同的图像源
+      imgElement.src = testImage // 使用导入的图片URL
       imgElement.onload = () => {
         const src = cv.imread(imgElement)
         const dst = new cv.Mat()

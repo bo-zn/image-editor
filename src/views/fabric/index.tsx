@@ -49,7 +49,7 @@ export default defineComponent({
     })
 
     onMounted(() => {
-      initializeCanvas('/src/assets/test.jpg')
+      initializeCanvas(new URL('@/assets/test.jpg', import.meta.url).href)
     })
 
     const initializeCanvas = (imageSrc: string) => {

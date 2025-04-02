@@ -1,12 +1,14 @@
 import 'cropperjs'
 
+const testImage = new URL('@/assets/test.jpg', import.meta.url).href
+
 export default defineComponent({
   setup() {
     return () => (
       <el-main class="h-full flex items-center justify-center ">
         <div class="w-[800px] h-[700px]">
           <cropper-canvas class="w-full h-full">
-            <cropper-image src="/src/assets/test.jpg" alt="Picture" rotatable skewable translatable></cropper-image>
+            <cropper-image src={testImage} alt="Picture" rotatable skewable translatable></cropper-image>
             <cropper-shade hidden></cropper-shade>
             <cropper-handle action="select" plain></cropper-handle>
             <cropper-selection initial-coverage="0.5" movable resizable>

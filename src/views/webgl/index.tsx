@@ -1,7 +1,7 @@
 export default defineComponent({
   setup() {
     const canvasRef = ref<HTMLCanvasElement | null>(null)
-    const imageSrc = '/src/assets/test.jpg'
+    const imageSrc = new URL('@/assets/test.jpg', import.meta.url).href
 
     onMounted(() => {
       const canvas = canvasRef.value
