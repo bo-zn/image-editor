@@ -230,6 +230,11 @@ export default defineComponent({
       sliderValues.exposure = 0
       sliderValues.highlights = 0
       sliderValues.shadows = 0
+      sliderValues.temperature = 0
+      sliderValues.tint = 0
+      filterTypes.forEach((type, index) => {
+        applyFilter(type, 0, index)
+      })
     }
 
     return () => (
